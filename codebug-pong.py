@@ -47,6 +47,12 @@ paddle_wall_gap = 10
 
 font = pygame.font.Font(None,48)
 
+game_over_font = pygame.font.Font(None, 200)
+game_over_display = font.render("GAME OVER",True , red)
+game_over_rect = game_over_display.get_rect()
+game_over_rect.centerx = screen_width/2
+game_over_rect.centery = screen_height/4 * 1
+
 in_play = True
 play_again = True
 
@@ -261,6 +267,7 @@ while play_again:
     ball1 = Ball( 20, 20,  screen_width/2 , screen_height/2, 4, white)
     balls = [ball1]
 
+    in_play = True
     while in_play:
 
         check_for_input()
@@ -275,12 +282,13 @@ while play_again:
         move_paddles()
         draw_paddles()
 
-        # draw scores
-        display_scores()
 
         # draw balls
         move_balls()
         draw_balls()
+
+        # draw scores
+        display_scores()
 
         screen.blit(screen,(0,0))
         pygame.display.flip()
@@ -289,3 +297,9 @@ while play_again:
             if paddle.score == 9:
                 in_play = False
         #time.sleep(.1)
+
+
+    screen.blit(game_over_display, game_over_rect)
+    pygame.display.flip()
+    time.sleep(5)
+
