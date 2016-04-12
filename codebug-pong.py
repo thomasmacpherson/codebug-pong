@@ -34,7 +34,7 @@ HORIZONTAL = 0
 VERTICAL = 1
 
 
-screen = pygame.display.set_mode(size)
+screen = pygame.display.set_mode(size,pygame.FULLSCREEN)
 
 #score1 = 0
 #score2 = 0
@@ -57,8 +57,10 @@ def check_for_input():
             sys.exit()
 
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                paddles[0].x += 10
+            # if event.key == pygame.K_LEFT:
+            #     paddles[0].x += 10
+            if event.key == pygame.K_ESCAPE:
+                sys.exit()
 
 def display_scores():
     score_1_display = font.render(str(paddles[0].score),True, paddles[0].colour)
@@ -85,6 +87,8 @@ def display_scores():
     score_4_rect.centerx = screen_width - 50
     score_4_rect.centery = 25
     screen.blit(score_4_display,score_4_rect)
+
+
 
 
 def draw_balls():
@@ -141,9 +145,8 @@ class Paddle:
         pygame.draw.rect(screen, self.colour,self.rect , self.line_thickness)
 
     def display_score(self):
-        #score = codebug_tether.sprites.StringSprite(str(self.score))
-        #self.codebug.draw_sprite(0, 0, score)
-        pass
+        score = codebug_tether.sprites.StringSprite(str(self.score))
+        self.codebug.draw_sprite(0, 0, score)
 
 
 class Ball:
@@ -152,8 +155,8 @@ class Ball:
 
         self.width = given_width
         self.height = given_height
-        self.x = given_width
-        self.y = given_height
+        self.x = screen_width/2
+        self.y = screen_height/2
         self.delta_x = 3
         self.delta_y = 3
         self.line_thickness = 0
@@ -208,6 +211,7 @@ class Ball:
             #self.y = screen_height-(screen_height-self.y)
             #self.delta_y = 0 - self.delta_y
             paddles[2].score += 1
+            paddles[2].display_score()
             self.reset_ball()
 
         if self.y <= 0:
@@ -215,17 +219,20 @@ class Ball:
             # self.y = 0 -self.y
             # self.delta_y = 0 - self.delta_y
             paddles[3].score += 1
+            paddles[3].display_score()
             self.reset_ball()
 
 
         if self.x < 0:
             #print("p1 lost")
             paddles[0].score += 1
+            paddles[0].display_score()
             self.reset_ball()
 
         if self.x > screen_width:
             #print("p2 lost")
             paddles[1].score += 1
+            paddles[1].display_score()
             self.reset_ball()
 
         for paddle in paddles:
@@ -238,20 +245,22 @@ class Ball:
         self.rect = self.rect.move(self.delta_x, self.delta_y)
 
 
-#initialise paddles
-paddle1 = Paddle(100, 20, paddle_wall_gap, screen_height/2, blue, VERTICAL, codebug1)
-paddle2 = Paddle(100, 20, screen_width -(20 + paddle_wall_gap), screen_height/2, red, VERTICAL, codebug1)
-paddle3 = Paddle(100, 20, screen_width/2, screen_height -(20 + paddle_wall_gap), green, HORIZONTAL, codebug2)
-paddle4 = Paddle(100, 20, screen_width/2, paddle_wall_gap, yellow, HORIZONTAL, codebug2)
-paddles = [paddle1, paddle2, paddle3, paddle4]
 
-#initialise balls
-ball1 = Ball( 20, 20,  screen_width/2 , screen_height/2, 4, white)
-balls = [ball1]
 
 
 
 while play_again:
+    #initialise paddles
+    paddle1 = Paddle(100, 20, paddle_wall_gap, screen_height/2, blue, VERTICAL, codebug1)
+    paddle2 = Paddle(100, 20, screen_width -(20 + paddle_wall_gap), screen_height/2, red, VERTICAL, codebug1)
+    paddle3 = Paddle(100, 20, screen_width/2, screen_height -(20 + paddle_wall_gap), green, HORIZONTAL, codebug2)
+    paddle4 = Paddle(100, 20, screen_width/2, paddle_wall_gap, yellow, HORIZONTAL, codebug2)
+    paddles = [paddle1, paddle2, paddle3, paddle4]
+
+    #initialise balls
+    ball1 = Ball( 20, 20,  screen_width/2 , screen_height/2, 4, white)
+    balls = [ball1]
+
     while in_play:
 
         check_for_input()
@@ -275,4 +284,8 @@ while play_again:
 
         screen.blit(screen,(0,0))
         pygame.display.flip()
+
+        for paddle in paddles:
+            if paddle.score == 9:
+                in_play = False
         #time.sleep(.1)
