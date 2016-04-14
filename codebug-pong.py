@@ -10,12 +10,27 @@ from codebug_tether import (IO_DIGITAL_INPUT, IO_ANALOGUE_INPUT, IO_PWM_OUTPUT, 
 
 logo = pygame.image.load('codebug-logo.png')
 
+codebug0 = codebug_tether.CodeBug('/dev/ttyACM0')
 codebug1 = codebug_tether.CodeBug('/dev/ttyACM1')
-codebug1.set_leg_io(0, IO_ANALOGUE_INPUT)
+codebug2 = codebug_tether.CodeBug('/dev/ttyACM2')
+codebug3 = codebug_tether.CodeBug('/dev/ttyACM3')
 
 
-codebug2 = codebug_tether.CodeBug('/dev/ttyACM0')
-codebug2.set_leg_io(0, IO_ANALOGUE_INPUT)
+cb0_pin = 6
+cb1_pin = 6
+cb2_pin = 6
+cb3_pin = 0
+
+codebug0.set_leg_io(cb0_pin, IO_ANALOGUE_INPUT)
+codebug1.set_leg_io(cb1_pin, IO_ANALOGUE_INPUT)
+codebug2.set_leg_io(cb2_pin, IO_ANALOGUE_INPUT)
+codebug3.set_leg_io(cb3_pin, IO_ANALOGUE_INPUT)
+
+
+# codebug2 = codebug_tether.CodeBug('/dev/ttyACM0')
+# codebug2.set_leg_io(6, IO_ANALOGUE_INPUT)
+
+PIN_AVERAGE = 3
 
 
 red = (255,0,0)
@@ -114,11 +129,19 @@ def draw_paddles():
     for paddle in paddles:
         paddle.draw_paddle()
 
+def most_common(given_list):
+    d = {}
+    for elm in given_list:
+        d[elm] = d.get(elm, 0) + 1
+    counts = [(j,i) for i,j in d.items()]
+    return max(counts)[1]
 
+# def read_leg(codebug, codebug_pin):
+#     return codebug.read_analogue(codebug_pin)
 
 class Paddle:
 
-    def __init__(self, given_width, given_height, given_x, given_y, given_colour, given_orientation, given_codebug):
+    def __init__(self, given_width, given_height, given_x, given_y, given_colour, given_orientation, given_codebug, given_codebug_pin):
 
         self.orientation = given_orientation
         if self.orientation == VERTICAL:
@@ -136,15 +159,33 @@ class Paddle:
         self.codebug = given_codebug
         self.score = 0
         self.display_score()
+        self.codebug_pin = given_codebug_pin
+        # needed to smooth out interference on the analogue leg
+        self.leg_average_list = [self.read_leg()] * 5
+
+    def read_leg(self):
+        return self.codebug.read_analogue(self.codebug_pin)
 
 
 
     def move_paddle(self):
+        # add the new analogue read to the averaging list and remove the oldest value
+        del self.leg_average_list[0]
+        self.leg_average_list.append(self.read_leg())
+
+        # use this for a smooth paddle movement, but jitter when not moving
+        # ave_leg_read = sum(self.leg_average_list)/len(self.leg_average_list)
+
+        # use this for low jitter, but not smooth paddle movement
+        ave_leg_read = most_common(self.leg_average_list)
+
+        # print (self.leg_average_list)
+
         if self.orientation == VERTICAL:
-            self.y = self.codebug.read_analogue(0)*((screen_height-self.height)/255)
+            self.y = ave_leg_read*((screen_height-self.height)/255)
             self.rect.y = self.y
         else:
-            self.x = self.codebug.read_analogue(0)*((screen_width-self.width)/255)
+            self.x = ave_leg_read*((screen_width-self.width)/255)
             self.rect.x = self.x
 
     def draw_paddle(self):
@@ -257,10 +298,10 @@ class Ball:
 
 while play_again:
     #initialise paddles
-    paddle1 = Paddle(100, 20, paddle_wall_gap, screen_height/2, blue, VERTICAL, codebug1)
-    paddle2 = Paddle(100, 20, screen_width -(20 + paddle_wall_gap), screen_height/2, red, VERTICAL, codebug1)
-    paddle3 = Paddle(100, 20, screen_width/2, screen_height -(20 + paddle_wall_gap), green, HORIZONTAL, codebug2)
-    paddle4 = Paddle(100, 20, screen_width/2, paddle_wall_gap, yellow, HORIZONTAL, codebug2)
+    paddle1 = Paddle(100, 20, paddle_wall_gap, screen_height/2, blue, VERTICAL, codebug0, cb0_pin)
+    paddle2 = Paddle(100, 20, screen_width -(20 + paddle_wall_gap), screen_height/2, red, VERTICAL, codebug1, cb1_pin)
+    paddle3 = Paddle(100, 20, screen_width/2, screen_height -(20 + paddle_wall_gap), green, HORIZONTAL, codebug2, cb2_pin)
+    paddle4 = Paddle(100, 20, screen_width/2, paddle_wall_gap, yellow, HORIZONTAL, codebug3, cb3_pin)
     paddles = [paddle1, paddle2, paddle3, paddle4]
 
     #initialise balls
