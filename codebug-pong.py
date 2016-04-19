@@ -1,5 +1,5 @@
 import pygame
-import os, sys
+import sys
 import pygame.locals
 import random
 import time
@@ -9,6 +9,12 @@ from codebug_tether import (IO_DIGITAL_INPUT, IO_ANALOGUE_INPUT, IO_PWM_OUTPUT, 
 
 
 logo = pygame.image.load('codebug-logo.png')
+
+# may use this for number of players
+# could instead check how many codebugs are connected at the begining of each game and get players to press A to join the game (with countdown)
+
+if len(sys.argv) > 1:
+    print("Args", sys.argv[1])
 
 codebug0 = codebug_tether.CodeBug('/dev/ttyACM0')
 codebug1 = codebug_tether.CodeBug('/dev/ttyACM1')
